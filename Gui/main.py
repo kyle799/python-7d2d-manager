@@ -21,7 +21,7 @@ class App:
         alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
         root.geometry(alignstr)
         ft = tkFont.Font(family='Times',size=10)
-        
+
         menubar = tk.Menu(root)
 
         fileMenuBar = tk.Menu(menubar, tearoff=0)
@@ -30,7 +30,7 @@ class App:
         fileMenuBar.add_command(label="Save and Exit", command=self.saveAndExit)
         fileMenuBar.add_command(label="Close", command=exit)
 
-        menubar.add_cascade(menu=fileMenuBar, label="Save")
+        menubar.add_cascade(menu=fileMenuBar, label="File")
         root.config(menu=menubar)
 
 
