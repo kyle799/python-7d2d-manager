@@ -21,6 +21,18 @@ class App:
         alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
         root.geometry(alignstr)
         ft = tkFont.Font(family='Times',size=10)
+        
+        menubar = tk.Menu(root)
+
+        fileMenuBar = tk.Menu(menubar, tearoff=0)
+
+        fileMenuBar.add_command(label="Save", command=self.saveAll)
+        fileMenuBar.add_command(label="Save and Exit", command=self.saveAndExit)
+        fileMenuBar.add_command(label="Close", command=exit)
+
+        menubar.add_cascade(menu=fileMenuBar, label="Save")
+        root.config(menu=menubar)
+
 
         pageMenu = tk.Frame(root)
         pageMenu.columnconfigure(0, weight=1)
@@ -74,6 +86,13 @@ class App:
 
     def button6Button_command(self):
         print(f"Changed servername to {self.input1.get('1.0', tk.END)} ")
+    
+    def saveAll(self):
+        print(f"Save complete")
+
+    def saveAndExit(self):
+        print(f"Save completed, exiting")
+        exit()
 
 if __name__ == "__main__":
     root = tk.Tk()
