@@ -3,8 +3,8 @@ Manager for 7 Days to Die dedicated server
 
 
 Goals:
-Start/stop/restart service
-Remotly connect Manager to 7D2D server
-adjust configs
-add mods to server
-Different tabs for perk/tool/vehicle adjustment
+1: Start/stop/restart service
+2. Remotely connect Manager to 7D2D server
+3. adjust configs
+4. add mods to server
+5. Different tabs for perk/tool/vehicle adjustment
