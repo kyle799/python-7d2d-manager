@@ -1,100 +1,111 @@
-#!/bin/python3
-import tkinter as tk
-import tkinter.font as tkFont
+import tkinter
+import tkinter.messagebox
+import customtkinter
+import os
+from PIL import Image
+import re
+import xml.etree.ElementTree as elemettree
 
-import time
+customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-global buttonForegroundColor
-global buttonBackgroundColor
-global ft
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("7 Days to Die Manager")
+        screenwidth = str(round(self.winfo_screenwidth()/2))
+        screenheight = str(round(self.winfo_screenheight()/2))
+        self.geometry(f"{screenwidth}x{screenheight}")
 
-buttonForegroundColor ="#000000"
-buttonBackgroundColor = "#f0f0f0"
-#ft = tkFont.Font(family='Times',size=10)
-class App:
-    def __init__(self, root):
-        root.title("7D2D Server Manager")
-        width=600
-        height=500
-        screenwidth = root.winfo_screenwidth()
-        screenheight = root.winfo_screenheight()
-        alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
-        root.geometry(alignstr)
-        ft = tkFont.Font(family='Times',size=10)
-        
-        menubar = tk.Menu(root)
-
-        fileMenuBar = tk.Menu(menubar, tearoff=0)
-
-        fileMenuBar.add_command(label="Save", command=self.saveAll)
-        fileMenuBar.add_command(label="Save and Exit", command=self.saveAndExit)
-        fileMenuBar.add_command(label="Close", command=exit)
-
-        menubar.add_cascade(menu=fileMenuBar, label="Save")
-        root.config(menu=menubar)
+        serverConfigRoot="c:\\users\\kyle\\\desktop\\7D2D"
+        defaultServerConfig=serverConfigRoot+"\\serverconfig.xml"
 
 
-        pageMenu = tk.Frame(root)
-        pageMenu.columnconfigure(0, weight=1)
+        # set grid layout 1x2
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
 
-        button1Main=tk.Button(pageMenu, font=ft, foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="center", text="Main", command=self.button1Main_command)
-        button1Main.grid(row=0, column=0, sticky='w', padx=5,)
+        # load images with light and dark mode image
 
-        button2Config=tk.Button(pageMenu, font=ft, foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="center", text="Config", command=self.button2Config_command)
-        button2Config.grid(row=0, column=1, sticky='w', padx=5)
+        # create navigation frame
+        self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.navigation_frame.grid(row=0, column=0, sticky="nsew")
+        self.navigation_frame.grid_rowconfigure(4, weight=1)
 
-        button3PerkEditor=tk.Button(pageMenu, font=ft, foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="center", text="Perk Editor", command=self.button3PerkEditor_command)
-        button3PerkEditor.grid(row=0, column=2, sticky='w', padx=5)
+        self.mainConfigButton = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Server Config", fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), anchor="w", command=self.mainConfigButtonEvent)
+        self.mainConfigButton.grid(row=1, column=0, sticky="ew")
 
-        button4Button=tk.Button(pageMenu, font=ft, foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="center", text="Button", command=self.button4Button_command)
-        button4Button.grid(row=0, column=3, sticky='w', padx=5)
+        self.perkEditorButton = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Perk Editor", fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), anchor="w", command=self.perkEditorButtonEvent)
+        self.perkEditorButton.grid(row=2, column=0, sticky="ew")
 
-        button5ImportConfiguration=tk.Button(pageMenu, font=ft, foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="center", text="Import Configuration", command=self.button5ImportConfiguration_command)
-        button5ImportConfiguration.grid(row=0, column=4, sticky= 'e', padx=5)
+        self.frame_3_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Frame 3", fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), anchor="w", command=self.frame_3_ButtonEvent)
+        self.frame_3_button.grid(row=3, column=0, sticky="ew")
 
-        pageMenu.pack()
+        self.appearance_mode_menu = customtkinter.CTkOptionMenu(self.navigation_frame, values=["Light", "Dark", "System"], command=self.change_appearance_mode_event)
+        self.appearance_mode_menu.grid(row=6, column=0, padx=20, pady=20, sticky="s")
 
-
-
-#add to mainpage 
-        #input1=tk.Entry(root, font=ft, borderwidth="1px",foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="left")
-        #input1.pack()
-
-        #button6Button=tk.Button(root, font=ft, foreground=buttonForegroundColor, background=buttonBackgroundColor, justify="center", text="Button", command=self.button6Button_command)
-        #button6Button.place(x=430,y=50,width=83,height=30)
+        # create home frame
+        self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.home_frame.grid_columnconfigure(0, weight=1)
 
 
 
 
-    def button1Main_command(self):
-        print(f"click main screen")
+        # create second frame
+        self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
+        # create third frame
+        self.third_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
-    def button2Config_command(self):
-        print(f"click config")
+        #programatticly create textboxes and names from xml file
+        configTree=elemettree.parse(defaultServerConfig)
+        configRoot=configTree.getroot()
+        textboxidx=0
+        for attribute in configRoot.iter('property'):
+            textboxidx=textboxidx+1
+            self.label = customtkinter.CTkLabel(self.home_frame, text=attribute.attrib['name'], anchor="w")
+            self.label.grid(row=textboxidx, column=0, padx=1, pady=1)
+            mainConfigTextbox="mainConfigTextbox"+"{textboxidx}"
+            self.mainConfigTextbox = customtkinter.CTkTextbox(self.home_frame, height=1)
+            self.mainConfigTextbox.grid(row=textboxidx, column=1, padx=0, pady=1)
+            self.mainConfigTextbox.insert("0.0", attribute.attrib['value'])
 
+        # select default frame
 
-    def button3PerkEditor_command(self):
-        print(f"click perk edit")
+        self.select_frame_by_name("home")
 
+    def select_frame_by_name(self, name):
+        self.mainConfigButton.configure(fg_color=("red", "red") if name == "home" else "transparent")
+        self.perkEditorButton.configure(fg_color=("red", "red") if name == "frame_2" else "transparent")
+        self.frame_3_button.configure(fg_color=("red", "red") if name == "frame_3" else "transparent")
 
-    def button4Button_command(self):
-        print(f"button 4")
-    
-    def button5ImportConfiguration_command(self):
-        print(f"import config")
+        # show selected frame
+        if name == "home":
+            self.home_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.home_frame.grid_forget()
+        if name == "frame_2":
+            self.second_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.second_frame.grid_forget()
+        if name == "frame_3":
+            self.third_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.third_frame.grid_forget()
 
-    def button6Button_command(self):
-        print(f"Changed servername to {self.input1.get('1.0', tk.END)} ")
-    
-    def saveAll(self):
-        print(f"Save complete")
+    def mainConfigButtonEvent(self):
+        self.select_frame_by_name("home")
 
-    def saveAndExit(self):
-        print(f"Save completed, exiting")
-        exit()
+    def perkEditorButtonEvent(self):
+        self.select_frame_by_name("frame_2")
+
+    def frame_3_ButtonEvent(self):
+        self.select_frame_by_name("frame_3")
+
+    def change_appearance_mode_event(self, new_appearance_mode):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = App(root)
-    root.mainloop()
+    app = App()
+    app.mainloop()
