@@ -25,8 +25,6 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-        # load images with light and dark mode image
-
         # create navigation frame
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
@@ -48,14 +46,14 @@ class App(customtkinter.CTk):
         self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.home_frame.grid_columnconfigure(0, weight=1)
 
-
-
-
         # create second frame
         self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
         # create third frame
         self.third_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+
+        #create scrollbar
+
 
         #programatticly create textboxes and names from xml file
         configTree=elemettree.parse(defaultServerConfig)
@@ -63,13 +61,18 @@ class App(customtkinter.CTk):
         textboxidx=0
         for attribute in configRoot.iter('property'):
             textboxidx=textboxidx+1
-            self.label = customtkinter.CTkLabel(self.home_frame, text=attribute.attrib['name'], anchor="w")
+            self.label = customtkinter.CTkLabel(self.home_frame, text=attribute.attrib['name'] )
             self.label.grid(row=textboxidx, column=0, padx=1, pady=1)
             mainConfigTextbox="mainConfigTextbox"+"{textboxidx}"
-            self.mainConfigTextbox = customtkinter.CTkTextbox(self.home_frame, height=1)
-            self.mainConfigTextbox.grid(row=textboxidx, column=1, padx=0, pady=1)
-            self.mainConfigTextbox.insert("0.0", attribute.attrib['value'])
+            self.mainConfigEntry = customtkinter.CTkTextbox(self.home_frame, height=1)
+            self.mainConfigEntry.grid(row=textboxidx, column=1, padx=0, pady=1)
+            self.mainConfigEntry.insert("0.0", text=attribute.attrib['value'])
+            def updateConfigButton():
+                newValue=self.mainConfigEntry.get("0.0", "end")
+                print(newValue)
 
+            self.mainConfigUpdateButton = customtkinter.CTkButton(self.home_frame, text=f"Update {attribute.attrib['name']}",command=updateConfigButton)
+            self.mainConfigUpdateButton.grid(row=textboxidx, column=3, padx=0, pady=1)
         # select default frame
 
         self.select_frame_by_name("home")
